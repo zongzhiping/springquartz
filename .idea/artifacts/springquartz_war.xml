@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" build-on-make="true" name="springquartz:war">
+    <output-path>G:/tomcat/apache-tomcat-8.0.30-windows-x64/apache-tomcat-8.0.30/webapps</output-path>
+    <root id="archive" name="springquartz.war">
+      <element id="artifact" artifact-name="springquartz:war exploded" />
+    </root>
+  </artifact>
+</component>
