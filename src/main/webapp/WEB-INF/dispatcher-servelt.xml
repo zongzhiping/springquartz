@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--<mvc:resources mapping="/**.html" location="/*.html"></mvc:resources>-->
+    <!--<mvc:resources mapping="/css/**" location="/css/*"></mvc:resources>-->
+    <!--<mvc:resources mapping="/js/**" location="/js/*"></mvc:resources>-->
+    <!--<mvc:resources mapping="/images/**" location="/images/*"></mvc:resources>-->
+
+    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+        <property name="messageConverters">
+            <list>
+                <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+                    <property name="supportedMediaTypes">
+                        <list>
+                            <value>text/html;charset=UTF-8</value>
+                        </list>
+                    </property>
+                </bean>
+            </list>
+        </property>
+    </bean>
+
+    <!--添加注解驱动-->
+    <mvc:annotation-driven/>
+    <!--默认扫描的包路径-->
+    <context:component-scan base-package="com.imooc.springquartz"/>
+
+    <!--不需要Controller处理request请求-->
+    <mvc:view-controller path="/" view-name="index"/>
+    <bean class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"></property>
+        <!--配置jsp路径前缀-->
+        <property name="prefix" value="/"></property>
+        <!---配置URI后缀-->
+        <property name="suffix" value=".jsp"></property>
+    </bean>
+
+    <bean id="simpleJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="myBean"></property>
+        <property name="targetMethod" value="printMessage"></property>
+    </bean>
+
+    <bean id="firstComplexJobDetail" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+        <property name="jobClass" value="com.imooc.springquartz.quartz.FirstScheduledJob"></property>
+        <property name="jobDataMap">
+            <map>
+                <entry key="anotherBean" value-ref="anotherBean"/>
+            </map>
+        </property>
+        <property name="durability" value="true"></property>
+    </bean>
+
+    <!--距离当前一秒之后执行-->
+    <bean id="mySimpleTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">
+        <property name="jobDetail" ref="simpleJobDetail"></property>
+        <property name="startDelay" value="1000"></property>
+        <property name="repeatInterval" value="2000"></property>
+    </bean>
+
+    <bean id="myCornTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="firstComplexJobDetail"></property>
+        <property name="cronExpression" value="0/5 * * * * ?"/>
+    </bean>
+
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="jobDetails">
+            <list>
+                <ref bean="simpleJobDetail"/>
+                <ref bean="firstComplexJobDetail"/>
+            </list>
+        </property>
+        
+        <property name="triggers">
+            <list>
+                <ref bean="mySimpleTrigger"></ref>
+                <ref bean="myCornTrigger"/>
+            </list>
+        </property>
+    </bean>
+</beans>
